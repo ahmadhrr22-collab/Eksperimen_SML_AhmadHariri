@@ -9,39 +9,58 @@ on:
 jobs:
   preprocess:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      # Checkout repository
+      # PERBAIKAN 1: Hapus tanda strip (-) sebelum 'uses'. 
+      # 'uses' adalah bagian dari step Checkout, bukan step baru.
       - name: Checkout repository
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GIT_TOKEN }}  # penting agar bisa push balik
+          token: ${{ secrets.GIT_TOKEN }} 
+          ref: ${{ github.head_ref }}
 
-      # Setup Python
+      # PERBAIKAN 2: Gunakan Python 3.12.7 sesuai Panduan PDF [cite: 172]
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.12.7'
 
-      # Install dependencies
+      # PERBAIKAN 3: Sesuaikan path requirements.txt
+      # Di screenshot Anda, file ini ada di dalam folder 'preprocessing'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f preprocessing/requirements.txt ]; then
+            pip install -r preprocessing/requirements.txt
+          else
+            echo "File requirements.txt tidak ditemukan di folder preprocessing!"
+            exit 1
+          fi
 
-      # Run preprocessing script
-      - name: Run preprocess.py
+      # PERBAIKAN 4: Sesuaikan Nama File & Lokasi Script
+      # Script harus bernama automate_Nama-siswa.py (sesuai kriteria Skilled) [cite: 31]
+      # dan dijalankan dari folder preprocessing
+      - name: Run preprocessing script
         run: |
-          python template_eksperimen_msml.py
+          # Pastikan Anda sudah mengubah nama file template menjadi automate_AhmadHariri.py
+          python preprocessing/automate_AhmadHariri.py
 
-      # Commit & push processed data
+      # PERBAIKAN 5: Git Config & Push
       - name: Commit processed data
+        env:
+          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
         run: |
-          git config --global user.email "${{ secrets.GIT_EMAIL }}"
-          git config --global user.name "${{ secrets.GIT_USERNAME }}"
-          git add processed_data.csv
-
-          # Hanya commit jika ada perubahan
-          git diff --cached --quiet || git commit -m "Update processed data"
-
-          git push
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_USERNAME"
+          
+          # Add seluruh folder preprocessing untuk menangkap file csv baru
+          git add preprocessing/
+          
+          # Commit hanya jika ada perubahan
+          git diff --staged --quiet || git commit -m "Auto-update processed data"
+          
+          # Push kembali ke branch main
+          git push origin HEAD:main
