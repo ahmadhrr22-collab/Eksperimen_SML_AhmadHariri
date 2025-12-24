@@ -1,0 +1,8 @@
+# Abaikan folder environment conda/python
+env/
+venv/
+.ipynb_checkpoints/
+__pycache__/
+
+# Abaikan file sistem
+.DS_Store

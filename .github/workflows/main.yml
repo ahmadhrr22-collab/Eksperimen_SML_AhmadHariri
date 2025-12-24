@@ -1,0 +1,47 @@
+name: Preprocessing Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout repository
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_TOKEN }}  # penting agar bisa push balik
+
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Run preprocessing script
+      - name: Run preprocess.py
+        run: |
+          python template_eksperimen_msml.py
+
+      # Commit & push processed data
+      - name: Commit processed data
+        run: |
+          git config --global user.email "${{ secrets.GIT_EMAIL }}"
+          git config --global user.name "${{ secrets.GIT_USERNAME }}"
+          git add processed_data.csv
+
+          # Hanya commit jika ada perubahan
+          git diff --cached --quiet || git commit -m "Update processed data"
+
+          git push
