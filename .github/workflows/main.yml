@@ -48,19 +48,13 @@ jobs:
           python preprocessing/automate_AhmadHariri.py
 
       # PERBAIKAN 5: Git Config & Push
-      - name: Commit processed data
-        env:
-          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
-          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+      - name: Commit and Push changes
         run: |
-          git config --global user.email "$GIT_EMAIL"
-          git config --global user.name "$GIT_USERNAME"
+          # Ganti konfigurasi git config di sini:
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          # Add seluruh folder preprocessing untuk menangkap file csv baru
-          git add preprocessing/
-          
-          # Commit hanya jika ada perubahan
-          git diff --staged --quiet || git commit -m "Auto-update processed data"
-          
-          # Push kembali ke branch main
-          git push origin HEAD:main
+          # Lanjutkan dengan add, commit, push
+          git add .
+          git commit -m "Auto-fix notebook from GitHub Actions" || echo "No changes to commit"
+          git push
